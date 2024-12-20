@@ -1,0 +1,11 @@
+[package]
+name = "bevy_button_transitions"
+description = "Easy button transition styles"
+license = "MIT OR Apache-2.0"
+version = "0.1.0"
+edition = "2024"
+repository = "https://github.com/tigerplush/bevy_button_transitions"
+homepage = "https://github.com/tigerplush/bevy_button_transitions"
+
+[dependencies]
+bevy = "0.15"
