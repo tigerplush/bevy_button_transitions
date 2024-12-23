@@ -41,7 +41,7 @@ impl Plugin for ButtonTransitionsPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.register_type::<ButtonTransition>()
             .register_type::<Interactable>()
-            .add_systems(Update, (update_button_interactions, update_interactables).chain());
+            .add_systems(PostUpdate, (update_button_interactions, update_interactables).chain());
     }
 }
 
