@@ -41,7 +41,7 @@ impl Plugin for ButtonTransitionsPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.register_type::<ButtonTransition>()
             .register_type::<Interactable>()
-            .add_systems(Update, update_button_interactions);
+            .add_systems(Update, (update_button_interactions, update_interactables).chain());
     }
 }
 
@@ -117,36 +117,45 @@ impl Default for Interactable {
 fn update_button_interactions(
     mut query: Query<(
         &mut ImageNode,
-        &Interactable,
         &ButtonTransition,
         &Interaction,
     )>,
 ) {
-    for (mut image_node, interactable, transition, interaction) in &mut query {
+    for (mut image_node, transition, interaction) in &mut query {
         match transition {
             ButtonTransition::ColorTint(tint) => {
-                let color = if !interactable.0 {
-                    tint.disabled_color
-                } else {
+                let color = 
                     match interaction {
                         Interaction::Hovered => tint.hovered_color,
                         Interaction::Pressed => tint.pressed_color,
                         Interaction::None => tint.normal_color,
-                    }
-                };
+                    };
                 image_node.color = color;
             }
             ButtonTransition::ImageSwap(swap) => {
-                let image = if !interactable.0 {
-                    swap.disabled_image.clone()
-                } else {
+                let image = 
                     match interaction {
                         Interaction::Hovered => swap.hovered_image.clone(),
                         Interaction::Pressed => swap.pressed_image.clone(),
                         Interaction::None => swap.normal_image.clone(),
-                    }
-                };
+                    };
                 image_node.image = image;
+            }
+        }
+    }
+}
+
+fn update_interactables(
+    mut query: Query<(
+        &mut ImageNode,
+        &Interactable,
+        &ButtonTransition,
+    )>,) {
+    for (mut image_node, interactable, button_transition) in &mut query {
+        if interactable.0 == false {
+            match button_transition {
+                ButtonTransition::ColorTint(color) => image_node.color = color.disabled_color,
+                ButtonTransition::ImageSwap(swap) => image_node.image = swap.disabled_image.clone(),
             }
         }
     }
