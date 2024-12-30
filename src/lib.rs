@@ -32,16 +32,39 @@
 //! ```
 //!
 //! Be aware that the color tint button transition needs an image to tint!
-use bevy::{color::palettes::css::WHITE, prelude::*};
+use bevy_asset::Handle;
+
+use bevy_app::Plugin;
+use bevy_app::PostUpdate;
+
+use bevy_color::Color;
+use bevy_color::palettes::css::WHITE;
+
+use bevy_derive::Deref;
+use bevy_derive::DerefMut;
+
+#[cfg(feature = "bevy_reflect")]
+use bevy_ecs::reflect::ReflectComponent;
+use bevy_ecs::component::Component;
+use bevy_ecs::system::Query;
+use bevy_ecs::schedule::IntoSystemConfigs;
+
+use bevy_image::Image;
+
+use bevy_ui::Interaction;
+use bevy_ui::widget::Button;
+use bevy_ui::widget::ImageNode;
 
 /// A [`Plugin`] that sets up button transitions.
 pub struct ButtonTransitionsPlugin;
 
 impl Plugin for ButtonTransitionsPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.register_type::<ButtonTransition>()
-            .register_type::<Interactable>()
-            .add_systems(PostUpdate, (update_button_interactions, update_interactables).chain());
+    fn build(&self, app: &mut bevy_app::App) {
+        #[cfg(feature = "bevy_reflect")]
+        app.register_type::<ButtonTransition>();
+        #[cfg(feature = "bevy_reflect")]
+        app.register_type::<Interactable>();
+        app.add_systems(PostUpdate, (update_button_interactions, update_interactables).chain());
     }
 }
 
@@ -50,16 +73,23 @@ impl Plugin for ButtonTransitionsPlugin {
 /// # Remarks
 /// Remember to add an ImageNode with a base image for the ColorTint Transition - otherwise
 /// there is nothing to tint!
-#[derive(Component, Reflect)]
-#[reflect(Component)]
+#[derive(Component)]
 #[require(Button, Interactable, ImageNode)]
+#[cfg_attr(
+    feature = "bevy_reflect",
+    derive(bevy_reflect::Reflect),
+    reflect(Component)
+)]
 pub enum ButtonTransition {
     ColorTint(ColorTint),
     ImageSwap(ImageSwap),
 }
 
 /// Defines the different tints of a [`ButtonTransition::ColorTint`].
-#[derive(Reflect)]
+#[cfg_attr(
+    feature = "bevy_reflect",
+    derive(bevy_reflect::Reflect),
+)]
 pub struct ColorTint {
     pub normal_color: Color,
     pub hovered_color: Color,
@@ -79,7 +109,10 @@ impl Default for ColorTint {
 }
 
 /// Defines the different image swaps of a [`ButtonTransition::ImageSwap`].
-#[derive(Reflect)]
+#[cfg_attr(
+    feature = "bevy_reflect",
+    derive(bevy_reflect::Reflect),
+)]
 pub struct ImageSwap {
     pub normal_image: Handle<Image>,
     pub hovered_image: Handle<Image>,
@@ -104,8 +137,12 @@ pub struct ImageSwap {
 ///     }
 /// }
 /// ```
-#[derive(Component, Deref, DerefMut, Reflect)]
-#[reflect(Component)]
+#[derive(Component, Deref, DerefMut)]
+#[cfg_attr(
+    feature = "bevy_reflect",
+    derive(bevy_reflect::Reflect),
+    reflect(Component)
+)]
 pub struct Interactable(pub bool);
 
 impl Default for Interactable {
