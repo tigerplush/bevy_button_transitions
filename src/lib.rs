@@ -43,11 +43,11 @@ use bevy_color::palettes::css::WHITE;
 use bevy_derive::Deref;
 use bevy_derive::DerefMut;
 
+use bevy_ecs::component::Component;
 #[cfg(feature = "bevy_reflect")]
 use bevy_ecs::reflect::ReflectComponent;
-use bevy_ecs::component::Component;
-use bevy_ecs::system::Query;
 use bevy_ecs::schedule::IntoSystemConfigs;
+use bevy_ecs::system::Query;
 
 use bevy_image::Image;
 
@@ -64,7 +64,10 @@ impl Plugin for ButtonTransitionsPlugin {
         app.register_type::<ButtonTransition>();
         #[cfg(feature = "bevy_reflect")]
         app.register_type::<Interactable>();
-        app.add_systems(PostUpdate, (update_button_interactions, update_interactables).chain());
+        app.add_systems(
+            PostUpdate,
+            (update_button_interactions, update_interactables).chain(),
+        );
     }
 }
 
@@ -86,10 +89,7 @@ pub enum ButtonTransition {
 }
 
 /// Defines the different tints of a [`ButtonTransition::ColorTint`].
-#[cfg_attr(
-    feature = "bevy_reflect",
-    derive(bevy_reflect::Reflect),
-)]
+#[cfg_attr(feature = "bevy_reflect", derive(bevy_reflect::Reflect))]
 pub struct ColorTint {
     pub normal_color: Color,
     pub hovered_color: Color,
@@ -109,10 +109,7 @@ impl Default for ColorTint {
 }
 
 /// Defines the different image swaps of a [`ButtonTransition::ImageSwap`].
-#[cfg_attr(
-    feature = "bevy_reflect",
-    derive(bevy_reflect::Reflect),
-)]
+#[cfg_attr(feature = "bevy_reflect", derive(bevy_reflect::Reflect))]
 pub struct ImageSwap {
     pub normal_image: Handle<Image>,
     pub hovered_image: Handle<Image>,
@@ -151,43 +148,30 @@ impl Default for Interactable {
     }
 }
 
-fn update_button_interactions(
-    mut query: Query<(
-        &mut ImageNode,
-        &ButtonTransition,
-        &Interaction,
-    )>,
-) {
+fn update_button_interactions(mut query: Query<(&mut ImageNode, &ButtonTransition, &Interaction)>) {
     for (mut image_node, transition, interaction) in &mut query {
         match transition {
             ButtonTransition::ColorTint(tint) => {
-                let color = 
-                    match interaction {
-                        Interaction::Hovered => tint.hovered_color,
-                        Interaction::Pressed => tint.pressed_color,
-                        Interaction::None => tint.normal_color,
-                    };
+                let color = match interaction {
+                    Interaction::Hovered => tint.hovered_color,
+                    Interaction::Pressed => tint.pressed_color,
+                    Interaction::None => tint.normal_color,
+                };
                 image_node.color = color;
             }
             ButtonTransition::ImageSwap(swap) => {
-                let image = 
-                    match interaction {
-                        Interaction::Hovered => swap.hovered_image.clone(),
-                        Interaction::Pressed => swap.pressed_image.clone(),
-                        Interaction::None => swap.normal_image.clone(),
-                    };
+                let image = match interaction {
+                    Interaction::Hovered => swap.hovered_image.clone(),
+                    Interaction::Pressed => swap.pressed_image.clone(),
+                    Interaction::None => swap.normal_image.clone(),
+                };
                 image_node.image = image;
             }
         }
     }
 }
 
-fn update_interactables(
-    mut query: Query<(
-        &mut ImageNode,
-        &Interactable,
-        &ButtonTransition,
-    )>,) {
+fn update_interactables(mut query: Query<(&mut ImageNode, &Interactable, &ButtonTransition)>) {
     for (mut image_node, interactable, button_transition) in &mut query {
         if interactable.0 == false {
             match button_transition {
